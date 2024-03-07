@@ -7,38 +7,194 @@
     <title>MusicGen with RLHF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
     <style>
         /* Custom CSS for centering */
         .centered-container {
             display: flex;
-            flex-direction: column; /* Changed to column */
+            flex-direction: column;
+            /* Changed to column */
             justify-content: center;
             align-items: center;
             height: 100vh;
             /* Adjust if needed */
         }
 
-        /* Custom CSS for placeholder */
-        ::placeholder {
+        .input-group input::placeholder {
             font-style: italic;
-            color: #00F00F;
+            color: #5c5c5c;
+        }
+
+        .rs-range-color {
+            background-color: #33B5E5;
+        }
+
+        .rs-path-color {
+            background-color: #C2E9F7;
+        }
+
+        .rs-handle {
+            background-color: #C2E9F7;
+            padding: 7px;
+            border: 2px solid #C2E9F7;
+        }
+
+        .rs-handle.rs-focus {
+            border-color: #33B5E5;
+        }
+
+        .rs-handle:after {
+            border-color: #33B5E5;
+            background-color: #33B5E5;
+        }
+
+        .rs-border {
+            border-color: transparent;
+        }
+
+        .rs-control .rs-bg-color {
+            background-color: #1a1a1a;
         }
     </style>
 </head>
 
 <body style="background-color: #161616;">
 
+    <button type="button" class="btn btn-outline-secondary btn-lg float-end mt-3" style="margin-right: 20px;"
+        data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+        <i class="bi bi-music-note-beamed"></i>
+    </button>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel"
+        style="background-color: #1a1a1a;">
+        <div class="offcanvas-header">
+            <h3 class="offcanvas-title" id="offcanvasRightLabel" style="color: #cfcfcf;">Creations</h3>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
     <div class="container">
         <div class="row">
             <div class="col text-center">
                 <div class="centered-container">
                     <h1 class="display-1 text-white text-center mb-4">MusicGen with RLHF</h1>
-                    <div class="input-group input-group-lg mb-2">
+                    <div class="input-group input-group-lg mb-4">
                         <input type="text"
                             class="form-control bg-black text-center text-white focus-ring focus-ring-light py-3 px-2 text-decoration-none border rounded-5 fs-3"
                             id="music-input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg"
                             placeholder="Compose a musical masterpiece here...">
+                    </div>
+                    <div class="d-grid gap-2 d-md-block">
+                        <button class="btn btn-outline-secondary btn-lg" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom"
+                            style="font-size: 2em; border-radius: 20%;">
+                            <i class="bi bi-sliders2-vertical"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-lg" type="button"
+                            style="font-size: 2em; border-radius: 20%;">
+                            <i class="bi bi-soundwave"></i>
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#offcanvasConsole" aria-controls="offcanvasConsole"
+                            style="font-size: 2em; border-radius: 20%;">
+                            <i class="bi bi-terminal"></i>
+                        </button>
+                    </div>
+
+                    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasBottom"
+                        aria-labelledby="offcanvasBottomLabel" style="background-color: #1a1a1a;">
+                        <div class="offcanvas-header">
+                            <h3 class="offcanvas-title" id="offcanvasBottomLabel" style="color: #cfcfcf;">Song
+                                Parameters</h3>
+                        </div>
+                        <div class="offcanvas-body small" style="position: relative;">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Popular</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Acoustic</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Danceable</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Energy</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Instrumental</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Lively</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Speechy</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Valence</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Tempo</label>
+                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-4">
+                                    <label for="formControlRange1" class="form-label text-white">Duration</label>
+                                    <input type="range" min="1" max="60" value="50" class="slider" id="formControlRange1">
+                                </div>
+                                <div class="d-grid gap-2 d-md-block">
+                                    <button class="btn btn-outline-secondary btn-lg" type="button" 
+                                        style="font-size: 2em; border-radius: 20%;">
+                                        <i class="bi bi-shuffle"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success btn-lg" type="button"
+                                        style="font-size: 2em; border-radius: 20%;">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="offcanvasConsole"
+                        aria-labelledby="offcanvasBottomLabel" style="background-color: #1a1a1a;">
+                        <div class="offcanvas-header">
+                            <h3 class="offcanvas-title" id="offcanvasBottomLabel" style="color: #cfcfcf;">Console Log
+                            </h3>
+                        </div>
+                        <div class="offcanvas-body small">
+                            <textarea class="form-control bg-dark text-white full-width-area" id="exampleTextarea"
+                                rows="4" style="height: 100%;" readonly></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -65,6 +221,7 @@
 
         // Set the random prompt as the placeholder for the input box
         document.getElementById("music-input").placeholder = randomPrompt;
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
