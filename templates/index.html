@@ -56,6 +56,57 @@
         .rs-control .rs-bg-color {
             background-color: #1a1a1a;
         }
+
+        #shuffle-button {
+            font-size: 2em; 
+            border-radius: 20%; 
+            color: #2CA58D; 
+            border-color: #2CA58D;
+            
+        }
+
+        #shuffle-button:hover {
+            background-color: #2CA58D;
+            color: #F4EDEA;
+        }
+
+        #audio-btn {
+            font-size: 2em; 
+            border-radius: 20%; 
+            color: #BA2D0B; 
+            border-color: #BA2D0B;
+        }
+
+        #audio-btn:hover {
+            background-color: #BA2D0B;
+            color: #F4EDEA;
+        }
+
+        #console-btn {
+            font-size: 2em; 
+            border-radius: 20%; 
+            color: #F4EDEA; 
+            border-color: #F4EDEA;
+        }
+
+        #console-btn:hover {
+            background-color: #F4EDEA;
+            color: #161616;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px; /* Set a maximum width */
+            margin: 20px auto; /* Center the player */
+        }
+        
+        /* Style the audio controls */
+        audio::-webkit-media-controls-panel {
+            background-color: #F4EDEA; /* Set background color */
+            /* border-radius: 2px; Add border radius */
+            padding: 10px; /* Add padding */
+        }
+
     </style>
 </head>
 
@@ -72,31 +123,55 @@
             <h3 class="offcanvas-title" id="offcanvasRightLabel" style="color: #cfcfcf;">Creations</h3>
         </div>
         <div class="offcanvas-body">
-            ...
+            {% for song in songs %}
+            <div class="card mb-3" style="background-color: #F4EDEA;">
+                <div class="card-body">
+                    <h5 class="card-title" style="color: #161616;">{{ song }}</h5>
+                    <p class="card-text" style="color: #161616;">{{ song }}</p>
+                    <audio controls src="{{ url_for('static', filename='audio/' + song) }}"></audio>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
     <div class="container">
         <div class="row">
             <div class="col text-center">
                 <div class="centered-container">
-                    <h1 class="display-1 text-white text-center mb-4">MusicGen with RLHF</h1>
-                    <div class="input-group input-group-lg mb-4">
+                    <h1 class="display-1 text-white text-center mb-4" style="color: #F4EDEA;">MusicGen with RLHF</h1>
+                    <!-- <div class="input-group input-group-lg mb-4">
                         <input type="text"
                             class="form-control bg-black text-center text-white focus-ring focus-ring-light py-3 px-2 text-decoration-none border rounded-5 fs-3"
                             id="music-input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg"
                             placeholder="Compose a musical masterpiece here...">
+                    </div> -->
+                    <div style="padding-bottom: 2.5%;">
+                        <button class="btn btn-lg" id="shuffle-button" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#offcanvasMusic" aria-controls="offcanvasBottom">
+                            <i class="bi bi-shuffle"></i>
+                        </button>
+                    </div>
+                    <div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasMusic"
+                        aria-labelledby="offcanvasBottomLabel" style="background-color: #1a1a1a;">
+                        <div class="offcanvas-header">
+                            <h3 class="offcanvas-title" id="offcanvasBottomLabel" style="color: #cfcfcf;">Generated Music
+                            </h3>
+                        </div>
+                        <div class="offcanvas-body small">
+                            <audio controls src="{{url_for('static', filename='audio/Bouzouki Beat.mp3')}}"></audio>
+                        </div>
                     </div>
                     <div class="d-grid gap-2 d-md-block">
-                        <button class="btn btn-outline-secondary btn-lg" type="button" data-bs-toggle="offcanvas"
+                        <button class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="offcanvas"
                             data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom"
                             style="font-size: 2em; border-radius: 20%;">
                             <i class="bi bi-sliders2-vertical"></i>
                         </button>
-                        <button class="btn btn-outline-danger btn-lg" type="button"
+                        <button id="audio-btn" class="btn btn-lg" type="button"
                             style="font-size: 2em; border-radius: 20%;">
                             <i class="bi bi-soundwave"></i>
                         </button>
-                        <button class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="offcanvas"
+                        <button id="console-btn" class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="offcanvas"
                             data-bs-target="#offcanvasConsole" aria-controls="offcanvasConsole"
                             style="font-size: 2em; border-radius: 20%;">
                             <i class="bi bi-terminal"></i>
