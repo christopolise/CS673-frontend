@@ -4,11 +4,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MusicGen with RLHF</title>
+    <title>MusicGen with DPO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         /* Custom CSS for centering */
         .centered-container {
@@ -57,7 +58,7 @@
             background-color: #1a1a1a;
         }
 
-        #shuffle-button {
+        #shuffle-button, #sliders-btn  {
             font-size: 2em; 
             border-radius: 20%; 
             color: #2CA58D; 
@@ -65,7 +66,7 @@
             
         }
 
-        #shuffle-button:hover {
+        #shuffle-button:hover, #sliders-btn:hover {
             background-color: #2CA58D;
             color: #F4EDEA;
         }
@@ -82,14 +83,14 @@
             color: #F4EDEA;
         }
 
-        #console-btn {
+        #console-btn, #reset-btn {
             font-size: 2em; 
             border-radius: 20%; 
             color: #F4EDEA; 
             border-color: #F4EDEA;
         }
 
-        #console-btn:hover {
+        #console-btn:hover, #reset-btn:hover {
             background-color: #F4EDEA;
             color: #161616;
         }
@@ -138,19 +139,19 @@
         <div class="row">
             <div class="col text-center">
                 <div class="centered-container">
-                    <h1 class="display-1 text-white text-center mb-4" style="color: #F4EDEA;">MusicGen with RLHF</h1>
-                    <!-- <div class="input-group input-group-lg mb-4">
+                    <h1 class="display-1 text-white text-center mb-4" style="color: #F4EDEA;">MusicGen with DPO</h1>
+                    <div class="input-group input-group-lg mb-4">
                         <input type="text"
                             class="form-control bg-black text-center text-white focus-ring focus-ring-light py-3 px-2 text-decoration-none border rounded-5 fs-3"
                             id="music-input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg"
                             placeholder="Compose a musical masterpiece here...">
-                    </div> -->
-                    <div style="padding-bottom: 2.5%;">
+                    </div>
+                    <!-- <div style="padding-bottom: 2.5%;">
                         <button class="btn btn-lg" id="shuffle-button" type="button" data-bs-toggle="offcanvas"
                             data-bs-target="#offcanvasMusic" aria-controls="offcanvasBottom">
                             <i class="bi bi-shuffle"></i>
                         </button>
-                    </div>
+                    </div> -->
                     <div class="offcanvas offcanvas-top" tabindex="-1" id="offcanvasMusic"
                         aria-labelledby="offcanvasBottomLabel" style="background-color: #1a1a1a;">
                         <div class="offcanvas-header">
@@ -162,7 +163,7 @@
                         </div>
                     </div>
                     <div class="d-grid gap-2 d-md-block">
-                        <button class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="offcanvas"
+                        <button id="sliders-btn" class="btn btn-lg" type="button" data-bs-toggle="offcanvas"
                             data-bs-target="#offcanvasBottom" aria-controls="offcanvasBottom"
                             style="font-size: 2em; border-radius: 20%;">
                             <i class="bi bi-sliders2-vertical"></i>
@@ -190,70 +191,70 @@
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Popular</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="pop" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Acoustic</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="acous" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Danceable</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="dance" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Energy</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="energy" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Instrumental</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="instru" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Lively</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="live" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Speechy</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="speech" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Valence</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="valence" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Tempo</label>
-                                            <input type="range" min="1" max="100" value="50" class="slider" id="formControlRange1" style="appearance: slider-vertical; height: 75%;">
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="tempo" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row mb-4">
                                     <label for="formControlRange1" class="form-label text-white">Duration</label>
-                                    <input type="range" min="1" max="60" value="50" class="slider" id="formControlRange1">
+                                    <input type="range" min="5" max="30" value="15" class="slider" id="duration">
                                 </div>
-                                <div class="d-grid gap-2 d-md-block">
-                                    <button class="btn btn-outline-secondary btn-lg" type="button" 
-                                        style="font-size: 2em; border-radius: 20%;">
+                                <div class="d-grid gap-2 d-md-block" style="padding-top: 5%;">
+                                    <button class="btn btn-lg" id="shuffle-button" type="button" data-bs-toggle="offcanvas"
+                                        data-bs-target="#offcanvasMusic" aria-controls="offcanvasBottom">
                                         <i class="bi bi-shuffle"></i>
                                     </button>
-                                    <button class="btn btn-outline-success btn-lg" type="button"
+                                    <button class="btn btn-lg" id="reset-btn" type="button"
                                         style="font-size: 2em; border-radius: 20%;">
-                                        <i class="bi bi-check-lg"></i>
+                                        <i class="bi bi-arrow-clockwise"></i>
                                     </button>
                                 </div>
                             </div>
@@ -294,8 +295,71 @@
         // Select a random prompt
         const randomPrompt = quippyPrompts[Math.floor(Math.random() * quippyPrompts.length)];
 
+        var socket = io.connect('http://your-flask-server-host:your-flask-server-port');
+
+        // Event listener for 'message' event
+        socket.on('message', function(data) {
+            console.log('Message received from server:', data);
+        });
+
         // Set the random prompt as the placeholder for the input box
         document.getElementById("music-input").placeholder = randomPrompt;
+
+        // On document ready
+        $(document).ready(function () {
+            // On shuffle button click
+            $("#shuffle-button").click(function () {
+                // Get the input value
+                const input = $("#music-input").val();
+                // Log the input value
+                console.log(input);
+            });
+
+            // On audio button click
+            $("#audio-btn").click(function () {
+                alert("Coming soon...")
+            });
+
+            // On reset button click
+            $("#reset-btn").click(function () {
+                // Get the input value
+                const input = $("#music-input").val();
+                // Log the input value
+                console.log(input);
+            });
+
+            // On music prompt input enter
+            $("#music-input").keypress(function (e) {
+                if (e.which == 13) {
+
+                    // Disable the input box
+                    $("#music-input").prop("disabled", true);
+
+                    // Send POST to /gen
+                    $.ajax({
+                        type: "POST",
+                        url: "/gen",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            prompt: $("#music-input").val(),
+                            pop: parseInt($("#pop").val()),
+                            acous: parseInt($("#acous").val()),
+                            dance: parseInt($("#dance").val()),
+                            energy: parseInt($("#energy").val()),
+                            instru: parseInt($("#instru").val()),
+                            live: parseInt($("#live").val()),
+                            speech: parseInt($("#speech").val()),
+                            valence: parseInt($("#valence").val()),
+                            tempo: parseInt($("#tempo").val()),
+                            duration: parseInt($("#duration").val()),
+                        }),
+                        success: function (response) {
+                            $("#exampleTextarea").val($("#exampleTextarea").val() + "\n" + response);
+                        }
+                    });
+                }
+            });
+        });
 
     </script>
 
