@@ -28,11 +28,27 @@ prompts = [
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+session_id = None
+uids = []
+
+@socketio.on('send_sid')
+def handle_send_sid(data):
+    global session_id
+    print("Data", data)
+    sid = data
+    if sid:
+        session_id = sid  # Store session ID sent by the client
+
 def poll_for_completion():
+    global uids
     while True:
-        if os.path.exists("static/sc_audio/output.mp3"):
-            socketio.emit("gen_complete", {"sid": request.json["sid"]})
-            break
+        files = os.listdir("static/sc_audio")
+        for uid in uids:
+            if os.path.exists(f"static/sc_audio/{session_id}-{uid}.wav"):
+                print(f"Found {uid}.wav")
+                socketio.emit("gen_complete", {"sid": request.json["sid"], "file_loc": f"{session_id}-{uid}.wav"})
+                # Remove uid from uids
+                uids = uids - [uid]
         time.sleep(1)
 
 @app.route("/random_pc", methods=["GET"])
@@ -43,12 +59,14 @@ def pre_random():
     return Response(song, mimetype="text/plain")
 
 @app.route("/gen", methods=["POST"])
-def gen(sid):
+def gen():
+    global uids
     # Assign the session id to the request
-    request.json["sid"] = sid
 
-    with open("static/sc_audio/prompt.json", "w") as f:
+    with open(f"static/sc_audio/prompt-{request.json['sid']}-{request.json['uuid']}.json", "w") as f:
         f.write(json.dumps(request.json))
+    
+    uids.append(request.json['uuid'])
     # Response text
     msg = "Generating song with the following prompts: \n"
     for field, prompt in request.json.items():
@@ -63,4 +81,8 @@ def index():
     )
 
 if __name__ == "__main__":
+    # Start the polling thread
+    poll_thread = Thread(target=poll_for_completion)
+    poll_thread.start()
+
     socketio.run(app, debug=True)

@@ -9,7 +9,8 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+
     <style>
         /* Custom CSS for centering */
         .centered-container {
@@ -220,7 +221,7 @@
                                     </div>
                                     <div class="col">
                                         <div class="row mb-3">
-                                            <label for="formControlRange1" class="form-label text-white">Lively</label>
+                                            <label for="formControlRange1" class="form-label text-white">Liveness</label>
                                             <input type="range" min="-5" max="5" value="0" class="slider" id="live" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
@@ -240,6 +241,30 @@
                                         <div class="row mb-3">
                                             <label for="formControlRange1" class="form-label text-white">Tempo</label>
                                             <input type="range" min="-5" max="5" value="0" class="slider" id="tempo" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">i/kV</label>
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="ikv" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">View Count</label>
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="view_count" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">L/D Ratio</label>
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="ld_ratio" style="appearance: slider-vertical; height: 75%;">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row mb-3">
+                                            <label for="formControlRange1" class="form-label text-white">Rating</label>
+                                            <input type="range" min="-5" max="5" value="0" class="slider" id="rating" style="appearance: slider-vertical; height: 75%;">
                                         </div>
                                     </div>
                                 </div>
@@ -294,8 +319,18 @@
 
         // Select a random prompt
         const randomPrompt = quippyPrompts[Math.floor(Math.random() * quippyPrompts.length)];
+        
+        var socket = io.connect('http://localhost:5000');
 
-        var socket = io.connect('http://your-flask-server-host:your-flask-server-port');
+        socket.on('gen_complete', function (data) {
+            console.log('Connected to the server', data);
+        });
+
+        // When the connection is established
+        socket.on('connect', function () {
+            // Sending the session ID to the Flask server
+            socket.emit('send_sid', socket.id);
+        });
 
         // Event listener for 'message' event
         socket.on('message', function(data) {
@@ -342,16 +377,25 @@
                         contentType: "application/json",
                         data: JSON.stringify({
                             prompt: $("#music-input").val(),
-                            pop: parseInt($("#pop").val()),
-                            acous: parseInt($("#acous").val()),
-                            dance: parseInt($("#dance").val()),
-                            energy: parseInt($("#energy").val()),
-                            instru: parseInt($("#instru").val()),
-                            live: parseInt($("#live").val()),
-                            speech: parseInt($("#speech").val()),
-                            valence: parseInt($("#valence").val()),
-                            tempo: parseInt($("#tempo").val()),
+                            weights: {
+                                popularity: parseInt($("#pop").val()),
+                                acousticness: parseInt($("#acous").val()),
+                                danceability: parseInt($("#dance").val()),
+                                energy: parseInt($("#energy").val()),
+                                instrumentalness: parseInt($("#instru").val()),
+                                liveness: parseInt($("#live").val()),
+                                speechiness: parseInt($("#speech").val()),
+                                valence: parseInt($("#valence").val()),
+                                tempo: parseInt($("#tempo").val()),
+                                "i/kV": parseInt($("#ikv").val()),
+                                view_count: parseInt($("#view_count").val()),
+                                ld_ratio: parseInt($("#ld_ratio").val()),
+                                rating: parseInt($("#rating").val()),
+                            },
                             duration: parseInt($("#duration").val()),
+                            sid: socket.id,
+                            uuid: Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10)
+
                         }),
                         success: function (response) {
                             $("#exampleTextarea").val($("#exampleTextarea").val() + "\n" + response);
