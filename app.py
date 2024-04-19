@@ -5,6 +5,8 @@ import json
 from flask_socketio import SocketIO
 from threading import Thread
 import time
+from flask_cors import CORS
+import pyinotify
 
 prompts = [
     "Pop dance track with catchy melodies, tropical percussion, and upbeat rhythms, perfect for the beach",
@@ -26,10 +28,11 @@ prompts = [
 ]
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins='http://localhost:5000')
 
 session_id = None
-uids = []
+uid = None
+
 
 @socketio.on('send_sid')
 def handle_send_sid(data):
@@ -39,17 +42,19 @@ def handle_send_sid(data):
     if sid:
         session_id = sid  # Store session ID sent by the client
 
-def poll_for_completion():
-    global uids
-    while True:
-        files = os.listdir("static/sc_audio")
-        for uid in uids:
-            if os.path.exists(f"static/sc_audio/{session_id}-{uid}.wav"):
-                print(f"Found {uid}.wav")
-                socketio.emit("gen_complete", {"sid": request.json["sid"], "file_loc": f"{session_id}-{uid}.wav"})
-                # Remove uid from uids
-                uids = uids - [uid]
-        time.sleep(1)
+# def poll_for_completion():
+#     global uids
+#     while True:
+#         print(f"SID {session_id} - UIDS {uids}")
+#         with open(f"static/loggy-boy.log", "w") as f:
+#             f.write(f"Generation complete for {session_id}-{uid}.wav")
+#         for uid in uids:
+#             if os.path.exists(f"static/sc_audio/{session_id}-{uid}.wav"):
+#                 # Log to file
+#                 socketio.emit("gen_complete", {"sid": request.json["sid"], "file_loc": f"{session_id}-{uid}.wav"})
+#                 # Remove uid from uids
+#                 uids = uids - [uid]
+#         time.sleep(1)
 
 @app.route("/random_pc", methods=["GET"])
 def pre_random():
@@ -60,29 +65,37 @@ def pre_random():
 
 @app.route("/gen", methods=["POST"])
 def gen():
-    global uids
+    global uid, session_id
     # Assign the session id to the request
+
+    session_id = request.json["sid"]
 
     with open(f"static/sc_audio/prompt-{request.json['sid']}-{request.json['uuid']}.json", "w") as f:
         f.write(json.dumps(request.json))
     
-    uids.append(request.json['uuid'])
+    uid = request.json['uuid']
     # Response text
     msg = "Generating song with the following prompts: \n"
     for field, prompt in request.json.items():
         msg += f"{field}: {prompt}\n"
+
+    while True:
+        print(f"SID {session_id} - UIDS {uid}")
+        if os.path.exists(f"static/sc_audio/{session_id}-{uid}.wav"):
+            # Log to file
+            socketio.emit("gen_complete", {"sid": request.json["sid"], 'base_audio': f"{session_id}-{uid}_base.wav", "avg_audio": f"{session_id}-{uid}.wav", "description": str(request.json["weights"])})
+            # Remove uid from uids list
+            uid = None
+            break
+        time.sleep(1)
     return Response(msg, mimetype="text/plain")
 
 @app.route("/")
 def index():
     return render_template(
         "index.html",
-        songs=[file for file in os.listdir("static/audio") if file.endswith(".mp3")],
+        songs=sorted([file for file in os.listdir("static/sc_audio") if file.endswith(".wav")]),
     )
 
 if __name__ == "__main__":
-    # Start the polling thread
-    poll_thread = Thread(target=poll_for_completion)
-    poll_thread.start()
-
     socketio.run(app, debug=True)

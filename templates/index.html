@@ -130,7 +130,7 @@
                 <div class="card-body">
                     <h5 class="card-title" style="color: #161616;">{{ song }}</h5>
                     <p class="card-text" style="color: #161616;">{{ song }}</p>
-                    <audio controls src="{{ url_for('static', filename='audio/' + song) }}"></audio>
+                    <audio controls src="{{ url_for('static', filename='sc_audio/' + song) }}"></audio>
                 </div>
             </div>
             {% endfor %}
@@ -159,8 +159,21 @@
                             <h3 class="offcanvas-title" id="offcanvasBottomLabel" style="color: #cfcfcf;">Generated Music
                             </h3>
                         </div>
-                        <div class="offcanvas-body small">
-                            <audio controls src="{{url_for('static', filename='audio/Bouzouki Beat.mp3')}}"></audio>
+                        <div id="results">
+                            <h4 style="color: #cfcfcf;">Base Version</h3>
+                            <div class="offcanvas-body small">
+                                <audio id="base-audio" controls src="{{url_for('static', filename='audio/Bouzouki Beat.mp3')}}"></audio>
+                            </div>
+                            <h4 style="color: #cfcfcf;">DPO Version</h3>
+                            <div class="offcanvas-body small">
+                                <audio id="avg-audio" controls src="{{url_for('static', filename='audio/Bouzouki Beat.mp3')}}"></audio>
+                            </div>
+                            <p class="text-white" id="description"></p>
+                        </div>
+                        <div id="loading">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
                         </div>
                     </div>
                     <div class="d-grid gap-2 d-md-block">
@@ -272,9 +285,8 @@
                                     <label for="formControlRange1" class="form-label text-white">Duration</label>
                                     <input type="range" min="5" max="30" value="15" class="slider" id="duration">
                                 </div>
-                                <div class="d-grid gap-2 d-md-block" style="padding-top: 5%;">
-                                    <button class="btn btn-lg" id="shuffle-button" type="button" data-bs-toggle="offcanvas"
-                                        data-bs-target="#offcanvasMusic" aria-controls="offcanvasBottom">
+                                <div class="d-grid gap-2 d-md-block" style="padding-top: 2%;">
+                                    <button class="btn btn-lg" id="shuffle-button" type="button">
                                         <i class="bi bi-shuffle"></i>
                                     </button>
                                     <button class="btn btn-lg" id="reset-btn" type="button"
@@ -322,8 +334,26 @@
         
         var socket = io.connect('http://localhost:5000');
 
+        var baseAudioUrl = "{{ url_for('static', filename='') }}";
         socket.on('gen_complete', function (data) {
             console.log('Connected to the server', data);
+
+            // Show the generated music in offcanvas top
+            document.getElementById("base-audio").src = baseAudioUrl + 'sc_audio/' + data.base_audio;
+            document.getElementById("avg-audio").src = baseAudioUrl + 'sc_audio/' + data.avg_audio;
+
+            // Set the description to string
+            var description = data.description.toString();
+            document.getElementById("description").innerHTML = data.description;
+
+            // Enable the input box
+            $("#music-input").prop("disabled", false);
+
+            // Show the generated music in offcanvas top
+            $("#offcanvasMusic").offcanvas('show');
+            $("#loading").hide();
+            $("#results").show();
+
         });
 
         // When the connection is established
@@ -355,12 +385,27 @@
                 alert("Coming soon...")
             });
 
+            // On shuffle button click
+            $("#shuffle-button").click(function () {
+
+                // Get original duration val
+                const duration = $("#duration").val();
+
+                // Set all sliders to random values from -5 to 5
+                $(".slider").each(function () {
+                    $(this).val(Math.floor(Math.random() * 11) - 5);
+                });
+
+                // Reset duration slider to original value
+                $("#duration").val(duration);
+            });
+
             // On reset button click
             $("#reset-btn").click(function () {
-                // Get the input value
-                const input = $("#music-input").val();
-                // Log the input value
-                console.log(input);
+                // Reset all sliders to 0
+                $(".slider").val(0);
+                // Reset duration slider to 15
+                $("#duration").val(15);
             });
 
             // On music prompt input enter
@@ -401,6 +446,11 @@
                             $("#exampleTextarea").val($("#exampleTextarea").val() + "\n" + response);
                         }
                     });
+
+                    // Show loading gif
+                    $("#offcanvasMusic").offcanvas('show');
+                    $("#loading").show();
+                    $("#results").hide();
                 }
             });
         });
